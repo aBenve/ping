@@ -137,10 +137,17 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         status: 'accepted',
-        alert_id: alert.id 
+        alert_id: alert.id,
+        alert: {
+          id: alert.id,
+          destination_name: alert.destination_name,
+          destination_lat: alert.destination_lat,
+          destination_lng: alert.destination_lng,
+          destination_radius: alert.destination_radius,
+        }
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     )

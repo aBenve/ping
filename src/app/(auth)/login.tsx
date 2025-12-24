@@ -1,54 +1,61 @@
-import { useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import { Link, router } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Button, Input } from '@/components/ui'
-import { useAuth } from '@/hooks'
-import { colors } from '@/constants'
+import { useState } from 'react';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
+import { Link, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MapPin } from 'lucide-react-native';
+import { Button, Input } from '@/components/ui';
+import { useAuth } from '@/hooks';
 
 export default function LoginScreen() {
-  const { signIn } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const insets = useSafeAreaInsets();
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleLogin() {
     if (!email || !password) {
-      setError('Completá todos los campos')
-      return
+      setError('Completá todos los campos');
+      return;
     }
 
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
 
     try {
-      await signIn(email, password)
-      router.replace('/(app)/home')
+      await signIn(email, password);
+      router.replace('/(app)/activity');
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión')
+      setError(err.message || 'Error al iniciar sesión');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        className="flex-1"
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
+        <ScrollView
+          contentContainerClassName="flex-grow p-6 justify-center"
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <Text style={styles.logo}>📍</Text>
-            <Text style={styles.title}>Ping</Text>
-            <Text style={styles.subtitle}>Avisá cuando llegues, automáticamente</Text>
+          {/* Header */}
+          <View className="items-center mb-12">
+            <View className="w-20 h-20 rounded-full bg-foreground items-center justify-center mb-4">
+              <MapPin color="#FFF" size={40} />
+            </View>
+            <Text className="text-4xl font-extrabold text-foreground mb-2">Ping</Text>
+            <Text className="text-base text-muted-foreground text-center">
+              Avisá cuando llegues, automáticamente
+            </Text>
           </View>
 
-          <View style={styles.form}>
+          {/* Form */}
+          <View className="w-full">
             <Input
               label="Email"
               placeholder="tu@email.com"
@@ -68,84 +75,28 @@ export default function LoginScreen() {
               autoComplete="password"
             />
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? (
+              <Text className="text-destructive text-sm text-center mb-4">{error}</Text>
+            ) : null}
 
             <Button
               title="Iniciar sesión"
               onPress={handleLogin}
               loading={loading}
-              style={styles.button}
+              className="mt-2"
             />
 
-            <View style={styles.registerLink}>
-              <Text style={styles.registerText}>¿No tenés cuenta? </Text>
+            <View className="flex-row justify-center mt-6">
+              <Text className="text-sm text-muted-foreground">¿No tenés cuenta? </Text>
               <Link href="/(auth)/register" asChild>
-                <Text style={styles.registerLinkText}>Registrate</Text>
+                <Pressable>
+                  <Text className="text-sm text-foreground font-semibold">Registrate</Text>
+                </Pressable>
               </Link>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
-  )
+    </View>
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  logo: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: colors.gray[900],
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.gray[500],
-    textAlign: 'center',
-  },
-  form: {
-    width: '100%',
-  },
-  error: {
-    color: colors.error.main,
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  button: {
-    marginTop: 8,
-  },
-  registerLink: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
-  registerText: {
-    fontSize: 14,
-    color: colors.gray[600],
-  },
-  registerLinkText: {
-    fontSize: 14,
-    color: colors.primary[600],
-    fontWeight: '600',
-  },
-})

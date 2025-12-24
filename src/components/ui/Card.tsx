@@ -1,54 +1,56 @@
-import { View, StyleSheet, ViewStyle, Pressable } from 'react-native'
-import { colors } from '@/constants'
+import { View, Pressable } from 'react-native';
+import { cn } from '@/lib/utils';
 
 interface CardProps {
-  children: React.ReactNode
-  style?: ViewStyle
-  onPress?: () => void
-  variant?: 'default' | 'outlined' | 'elevated'
+  children: React.ReactNode;
+  className?: string;
+  onPress?: () => void;
 }
 
-export function Card({ children, style, onPress, variant = 'default' }: CardProps) {
-  const content = (
-    <View style={[styles.base, styles[variant], style]}>
-      {children}
-    </View>
-  )
-
+function Card({ children, className, onPress }: CardProps) {
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
-        {content}
+      <Pressable
+        onPress={onPress}
+        className={cn(
+          'rounded-2xl bg-card border border-border p-4 active:opacity-90',
+          className
+        )}
+      >
+        {children}
       </Pressable>
-    )
+    );
   }
 
-  return content
+  return (
+    <View className={cn('rounded-2xl bg-card border border-border p-4', className)}>
+      {children}
+    </View>
+  );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: 16,
-    padding: 16,
-  },
-  default: {
-    backgroundColor: colors.white,
-  },
-  outlined: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.gray[200],
-  },
-  elevated: {
-    backgroundColor: colors.white,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  pressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.99 }],
-  },
-})
+function CardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <View className={cn('pb-3', className)}>{children}</View>;
+}
+
+function CardTitle({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <View className={cn('', className)}>
+      {typeof children === 'string' ? (
+        <View className="text-lg font-semibold text-foreground">{children}</View>
+      ) : (
+        children
+      )}
+    </View>
+  );
+}
+
+function CardContent({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <View className={cn('', className)}>{children}</View>;
+}
+
+function CardFooter({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <View className={cn('pt-3 flex-row', className)}>{children}</View>;
+}
+
+export { Card, CardHeader, CardTitle, CardContent, CardFooter };

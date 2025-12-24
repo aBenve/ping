@@ -12,6 +12,19 @@ interface SendRequestParams {
   message?: string
 }
 
+interface AcceptedAlertData {
+  id: string
+  destination_name: string
+  destination_lat: number
+  destination_lng: number
+  destination_radius: number
+}
+
+interface RespondToRequestResult {
+  alert_id?: string
+  alert?: AcceptedAlertData
+}
+
 export function useRequests() {
   const { user, pendingRequests, setPendingRequests } = useStore()
 
@@ -63,9 +76,9 @@ export function useRequests() {
   }
 
   async function respondToRequest(
-    requestId: string, 
+    requestId: string,
     action: 'accept' | 'reject'
-  ): Promise<{ alert_id?: string }> {
+  ): Promise<RespondToRequestResult> {
     if (!user) throw new Error('No user logged in')
 
     const { data, error } = await supabase.functions.invoke('handle-request', {
@@ -80,7 +93,7 @@ export function useRequests() {
 
     await fetchPendingRequests()
 
-    return data
+    return data as RespondToRequestResult
   }
 
   async function getSentRequests(limit = 20): Promise<RequestWithUsers[]> {

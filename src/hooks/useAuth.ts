@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { router } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { useStore } from '@/stores/useStore'
 import { Session } from '@supabase/supabase-js'
@@ -85,6 +86,8 @@ export function useAuth() {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
     reset()
+    // Navigate to login after sign out
+    router.replace('/(auth)/login')
   }
 
   async function updateProfile(updates: { username?: string; full_name?: string; phone?: string }) {

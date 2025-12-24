@@ -1,158 +1,107 @@
-import { View, Text, StyleSheet, Pressable, Switch } from 'react-native'
-import { colors } from '@/constants'
-import { ContactWithProfile } from '@/types/database'
+import { View, Text, Pressable, Switch } from 'react-native';
+import { Star, Trash2, Check } from 'lucide-react-native';
+import { Avatar } from '@/components/ui';
+import { ContactWithProfile } from '@/types/database';
+import { cn } from '@/lib/utils';
 
 interface ContactItemProps {
-  contact: ContactWithProfile
-  onPress?: () => void
-  onToggleTrusted?: (value: boolean) => void
-  selectable?: boolean
-  selected?: boolean
-  onSelect?: () => void
+  contact: ContactWithProfile;
+  onPress?: () => void;
+  onToggleTrusted?: (value: boolean) => void;
+  onRemove?: () => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: () => void;
+  showActions?: boolean;
 }
 
 export function ContactItem({
   contact,
   onPress,
   onToggleTrusted,
+  onRemove,
   selectable,
   selected,
   onSelect,
+  showActions = true,
 }: ContactItemProps) {
-  const profile = contact.contact
-  const displayName = profile?.full_name || profile?.username || 'Unknown'
-  const initial = displayName.charAt(0).toUpperCase()
+  const profile = contact.contact;
+  const displayName = profile?.full_name || profile?.username || 'Unknown';
 
   const content = (
-    <View style={styles.container}>
+    <View className="flex-row items-center py-3 px-4">
       {selectable && (
-        <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
-          {selected && <Text style={styles.checkmark}>✓</Text>}
+        <View
+          className={cn(
+            'w-6 h-6 rounded-full border-2 items-center justify-center mr-3',
+            selected ? 'bg-foreground border-foreground' : 'border-border'
+          )}
+        >
+          {selected && <Check color="#FFF" size={14} />}
         </View>
       )}
-      
-      <View style={[styles.avatar, contact.is_trusted && styles.avatarTrusted]}>
-        <Text style={styles.avatarText}>{initial}</Text>
+
+      <View className="relative">
+        <Avatar name={displayName} size="md" />
         {contact.is_trusted && (
-          <View style={styles.trustedBadge}>
-            <Text style={styles.trustedBadgeText}>⭐</Text>
+          <View className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-amber-400 items-center justify-center border-2 border-background">
+            <Star color="#FFF" size={10} fill="#FFF" />
           </View>
         )}
       </View>
-      
-      <View style={styles.info}>
-        <Text style={styles.name}>{displayName}</Text>
-        <Text style={styles.username}>@{profile?.username}</Text>
+
+      <View className="flex-1 ml-3">
+        <Text className="text-base font-medium text-foreground">{displayName}</Text>
+        <Text className="text-sm text-muted-foreground">@{profile?.username}</Text>
       </View>
 
-      {onToggleTrusted && (
-        <View style={styles.trustToggle}>
-          <Text style={styles.trustLabel}>Confianza</Text>
-          <Switch
-            value={contact.is_trusted}
-            onValueChange={onToggleTrusted}
-            trackColor={{ false: colors.gray[300], true: colors.primary[300] }}
-            thumbColor={contact.is_trusted ? colors.primary[600] : colors.gray[100]}
-          />
-        </View>
+      {showActions && onToggleTrusted && (
+        <Pressable
+          className={cn(
+            'px-3 py-1.5 rounded-full mr-2',
+            contact.is_trusted ? 'bg-amber-100' : 'bg-secondary'
+          )}
+          onPress={() => onToggleTrusted(!contact.is_trusted)}
+        >
+          <View className="flex-row items-center">
+            <Star
+              color={contact.is_trusted ? '#F59E0B' : '#A1A1AA'}
+              size={14}
+              fill={contact.is_trusted ? '#F59E0B' : 'none'}
+            />
+            <Text
+              className={cn(
+                'text-xs font-medium ml-1',
+                contact.is_trusted ? 'text-amber-600' : 'text-muted-foreground'
+              )}
+            >
+              {contact.is_trusted ? 'Confianza' : 'Normal'}
+            </Text>
+          </View>
+        </Pressable>
+      )}
+
+      {showActions && onRemove && (
+        <Pressable
+          className="w-9 h-9 rounded-full items-center justify-center active:bg-red-50"
+          onPress={onRemove}
+        >
+          <Trash2 color="#EF4444" size={18} />
+        </Pressable>
       )}
     </View>
-  )
+  );
 
   if (onPress || onSelect) {
     return (
-      <Pressable 
-        onPress={onSelect || onPress} 
-        style={({ pressed }) => pressed && styles.pressed}
+      <Pressable
+        onPress={onSelect || onPress}
+        className="active:bg-secondary"
       >
         {content}
       </Pressable>
-    )
+    );
   }
 
-  return content
+  return content;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: colors.white,
-  },
-  pressed: {
-    backgroundColor: colors.gray[50],
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: colors.gray[300],
-    marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxSelected: {
-    backgroundColor: colors.primary[600],
-    borderColor: colors.primary[600],
-  },
-  checkmark: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.gray[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarTrusted: {
-    backgroundColor: colors.primary[100],
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.gray[700],
-  },
-  trustedBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trustedBadgeText: {
-    fontSize: 10,
-  },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.gray[900],
-  },
-  username: {
-    fontSize: 14,
-    color: colors.gray[500],
-    marginTop: 2,
-  },
-  trustToggle: {
-    alignItems: 'center',
-  },
-  trustLabel: {
-    fontSize: 10,
-    color: colors.gray[500],
-    marginBottom: 4,
-  },
-})

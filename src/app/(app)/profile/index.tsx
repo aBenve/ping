@@ -1,247 +1,238 @@
-import { View, Text, StyleSheet, ScrollView, Alert, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Card, Button } from '@/components/ui'
-import { useAuth } from '@/hooks'
-import { colors } from '@/constants'
+import { useState } from 'react';
+import { View, Text, ScrollView, Pressable, Share, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import {
+  Bell,
+  MapPin,
+  History,
+  HelpCircle,
+  FileText,
+  Shield,
+  Users,
+  ChevronRight,
+  LogOut,
+  QrCode,
+  Share2,
+} from 'lucide-react-native';
+import QRCode from 'react-native-qrcode-svg';
+import { Card, Avatar, Button, Dialog, useDialog } from '@/components/ui';
+import { useAuth } from '@/hooks';
+
+const { width } = Dimensions.get('window');
+const QR_SIZE = Math.min(width - 120, 200);
+
+interface MenuItemProps {
+  icon: React.ReactNode;
+  label: string;
+  onPress?: () => void;
+}
+
+function MenuItem({ icon, label, onPress }: MenuItemProps) {
+  return (
+    <Pressable
+      className="flex-row items-center py-3.5 active:opacity-70"
+      onPress={onPress}
+    >
+      <View className="w-8">{icon}</View>
+      <Text className="flex-1 text-base text-foreground">{label}</Text>
+      <ChevronRight color="#A1A1AA" size={20} />
+    </Pressable>
+  );
+}
+
+function MenuDivider() {
+  return <View className="h-px bg-border" />;
+}
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth()
+  const insets = useSafeAreaInsets();
+  const { user, signOut } = useAuth();
+  const { dialogProps, showConfirm } = useDialog();
+  const [showQR, setShowQR] = useState(false);
 
-  const displayName = user?.full_name || user?.username || 'Usuario'
-  const initial = displayName.charAt(0).toUpperCase()
+  const displayName = user?.full_name || user?.username || 'Usuario';
+  const qrValue = user?.username ? `ping://add/${user.username}` : '';
 
-  async function handleSignOut() {
-    Alert.alert(
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Agregame en Ping! Mi usuario es @${user?.username}`,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  function handleSignOut() {
+    showConfirm(
       'Cerrar sesión',
       '¿Estás seguro de que querés cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Cerrar sesión', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut()
-            } catch (error) {
-              console.error('Error signing out:', error)
-            }
-          }
-        },
-      ]
-    )
+      async () => {
+        try {
+          await signOut();
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      },
+      undefined,
+      'Cerrar sesión',
+      'Cancelar'
+    );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Perfil</Text>
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      {/* Header */}
+      <View className="px-5 py-4">
+        <Text className="text-2xl font-bold text-foreground">Perfil</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.profileSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
-          <Text style={styles.name}>{displayName}</Text>
-          <Text style={styles.username}>@{user?.username}</Text>
+      <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8">
+        {/* Profile Section */}
+        <View className="items-center py-6">
+          <Avatar name={displayName} size="xl" />
+          <Text className="text-xl font-bold text-foreground mt-3">{displayName}</Text>
+          <Text className="text-sm text-muted-foreground">@{user?.username}</Text>
         </View>
 
-        <Card variant="outlined" style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Email</Text>
-            <Text style={styles.infoValue}>Conectado via Supabase Auth</Text>
-          </View>
-          
-          {user?.phone && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Teléfono</Text>
-              <Text style={styles.infoValue}>{user.phone}</Text>
+        {/* QR Code Section */}
+        <Card className="mb-6 p-4">
+          <Pressable
+            className="flex-row items-center justify-between"
+            onPress={() => setShowQR(!showQR)}
+          >
+            <View className="flex-row items-center">
+              <View className="w-10 h-10 rounded-full bg-primary items-center justify-center">
+                <QrCode color="#FFF" size={20} />
+              </View>
+              <View className="ml-3">
+                <Text className="text-base font-semibold text-foreground">Mi código QR</Text>
+                <Text className="text-sm text-muted-foreground">
+                  Para que otros te agreguen
+                </Text>
+              </View>
+            </View>
+            <ChevronRight
+              color="#A1A1AA"
+              size={20}
+              style={{ transform: [{ rotate: showQR ? '90deg' : '0deg' }] }}
+            />
+          </Pressable>
+
+          {showQR && qrValue && (
+            <View className="items-center mt-4 pt-4 border-t border-border">
+              <View className="bg-white p-4 rounded-2xl">
+                <QRCode
+                  value={qrValue}
+                  size={QR_SIZE}
+                  backgroundColor="white"
+                  color="#18181B"
+                />
+              </View>
+              <Text className="text-sm text-muted-foreground mt-3 text-center">
+                Escaneá este código desde la app Ping
+              </Text>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                icon={<Share2 color="#18181B" size={16} />}
+                title="Compartir usuario"
+                onPress={handleShare}
+              />
             </View>
           )}
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Miembro desde</Text>
-            <Text style={styles.infoValue}>
-              {user?.created_at ? new Date(user.created_at).toLocaleDateString('es-AR') : '-'}
-            </Text>
-          </View>
         </Card>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Configuración</Text>
-          
-          <Card variant="outlined">
-            <Pressable style={styles.menuItem}>
-              <Text style={styles.menuIcon}>🔔</Text>
-              <Text style={styles.menuText}>Notificaciones</Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </Pressable>
-            
-            <View style={styles.menuDivider} />
-            
-            <Pressable style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📍</Text>
-              <Text style={styles.menuText}>Permisos de ubicación</Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </Pressable>
-            
-            <View style={styles.menuDivider} />
-            
-            <Pressable style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📖</Text>
-              <Text style={styles.menuText}>Historial de alertas</Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </Pressable>
+        {/* Main Menu */}
+        <View className="mb-6">
+          <Text className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+            General
+          </Text>
+          <Card className="px-4 py-0">
+            <MenuItem
+              icon={<Users color="#18181B" size={20} />}
+              label="Contactos"
+              onPress={() => router.push('/contacts')}
+            />
+            <MenuDivider />
+            <MenuItem
+              icon={<MapPin color="#18181B" size={20} />}
+              label="Lugares guardados"
+              onPress={() => {}}
+            />
+            <MenuDivider />
+            <MenuItem
+              icon={<History color="#18181B" size={20} />}
+              label="Historial"
+              onPress={() => {}}
+            />
           </Card>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Soporte</Text>
-          
-          <Card variant="outlined">
-            <Pressable style={styles.menuItem}>
-              <Text style={styles.menuIcon}>❓</Text>
-              <Text style={styles.menuText}>Ayuda</Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </Pressable>
-            
-            <View style={styles.menuDivider} />
-            
-            <Pressable style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📝</Text>
-              <Text style={styles.menuText}>Términos y condiciones</Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </Pressable>
-            
-            <View style={styles.menuDivider} />
-            
-            <Pressable style={styles.menuItem}>
-              <Text style={styles.menuIcon}>🔒</Text>
-              <Text style={styles.menuText}>Privacidad</Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </Pressable>
+        {/* Settings Menu */}
+        <View className="mb-6">
+          <Text className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+            Configuración
+          </Text>
+          <Card className="px-4 py-0">
+            <MenuItem
+              icon={<Bell color="#18181B" size={20} />}
+              label="Notificaciones"
+              onPress={() => {}}
+            />
+            <MenuDivider />
+            <MenuItem
+              icon={<MapPin color="#18181B" size={20} />}
+              label="Permisos de ubicación"
+              onPress={() => {}}
+            />
           </Card>
         </View>
 
+        {/* Support Menu */}
+        <View className="mb-8">
+          <Text className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+            Soporte
+          </Text>
+          <Card className="px-4 py-0">
+            <MenuItem
+              icon={<HelpCircle color="#18181B" size={20} />}
+              label="Ayuda"
+              onPress={() => {}}
+            />
+            <MenuDivider />
+            <MenuItem
+              icon={<FileText color="#18181B" size={20} />}
+              label="Términos y condiciones"
+              onPress={() => {}}
+            />
+            <MenuDivider />
+            <MenuItem
+              icon={<Shield color="#18181B" size={20} />}
+              label="Privacidad"
+              onPress={() => {}}
+            />
+          </Card>
+        </View>
+
+        {/* Sign Out */}
         <Button
+          variant="destructive"
           title="Cerrar sesión"
-          variant="danger"
+          icon={<LogOut color="#FFF" size={18} />}
           onPress={handleSignOut}
-          style={styles.signOutButton}
+          className="mb-6"
         />
 
-        <Text style={styles.version}>Versión 1.0.0</Text>
+        <Text className="text-center text-xs text-muted-foreground">
+          Versión 1.0.0
+        </Text>
       </ScrollView>
-    </SafeAreaView>
-  )
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.gray[50],
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.gray[900],
-  },
-  content: {
-    padding: 20,
-  },
-  profileSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.primary[700],
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.gray[900],
-    marginBottom: 4,
-  },
-  username: {
-    fontSize: 14,
-    color: colors.gray[500],
-  },
-  infoCard: {
-    marginBottom: 24,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: colors.gray[500],
-  },
-  infoValue: {
-    fontSize: 14,
-    color: colors.gray[900],
-    fontWeight: '500',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.gray[500],
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  menuIcon: {
-    fontSize: 18,
-    marginRight: 12,
-  },
-  menuText: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.gray[900],
-  },
-  menuArrow: {
-    fontSize: 20,
-    color: colors.gray[400],
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: colors.gray[100],
-  },
-  signOutButton: {
-    marginTop: 8,
-  },
-  version: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: colors.gray[400],
-    marginTop: 24,
-  },
-})
+      {/* Custom Dialog */}
+      <Dialog {...dialogProps} />
+    </View>
+  );
+}

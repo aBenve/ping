@@ -1,214 +1,199 @@
-import { useEffect, useState, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Pressable, Alert } from 'react-native'
-import { router } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Card } from '@/components/ui'
-import { ContactItem } from '@/components'
-import { useContacts } from '@/hooks'
-import { colors } from '@/constants'
+import { useEffect, useState, useCallback } from 'react';
+import { View, Text, ScrollView, RefreshControl, TextInput, Pressable } from 'react-native';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Plus, Search, Users, Star, ChevronLeft } from 'lucide-react-native';
+import { Card, Button, EmptyState, Dialog, useDialog } from '@/components/ui';
+import { ContactItem } from '@/components';
+import { useContacts } from '@/hooks';
 
 export default function ContactsScreen() {
-  const { contacts, trustedContacts, fetchContacts, toggleTrusted, removeContact } = useContacts()
-  const [refreshing, setRefreshing] = useState(false)
+  const insets = useSafeAreaInsets();
+  const { contacts, trustedContacts, fetchContacts, toggleTrusted, removeContact } = useContacts();
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { dialogProps, showConfirm } = useDialog();
 
   useEffect(() => {
-    fetchContacts()
-  }, [fetchContacts])
+    fetchContacts();
+  }, [fetchContacts]);
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true)
-    await fetchContacts()
-    setRefreshing(false)
-  }, [fetchContacts])
+    setRefreshing(true);
+    await fetchContacts();
+    setRefreshing(false);
+  }, [fetchContacts]);
 
-  async function handleToggleTrusted(contactId: string, currentValue: boolean) {
+  const handleToggleTrusted = async (contactId: string, currentValue: boolean) => {
     try {
-      await toggleTrusted(contactId, !currentValue)
+      await toggleTrusted(contactId, !currentValue);
     } catch (error) {
-      console.error('Error toggling trusted:', error)
+      console.error('Error toggling trusted:', error);
     }
-  }
+  };
 
-  function handleRemove(contactId: string, name: string) {
-    Alert.alert(
+  const handleRemove = (contactId: string, name: string) => {
+    showConfirm(
       'Eliminar contacto',
       `¿Estás seguro de que querés eliminar a ${name}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Eliminar', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeContact(contactId)
-            } catch (error) {
-              console.error('Error removing contact:', error)
-            }
-          }
-        },
-      ]
-    )
-  }
+      async () => {
+        try {
+          await removeContact(contactId);
+        } catch (error) {
+          console.error('Error removing contact:', error);
+        }
+      }
+    );
+  };
 
-  const regularContacts = contacts.filter(c => !c.is_trusted)
+  const regularContacts = contacts.filter((c) => !c.is_trusted);
+
+  const filteredTrusted = trustedContacts.filter((c) => {
+    const name = c.contact?.full_name || c.contact?.username || '';
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const filteredRegular = regularContacts.filter((c) => {
+    const name = c.contact?.full_name || c.contact?.username || '';
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Contactos</Text>
-        <Pressable 
-          style={styles.addButton}
-          onPress={() => router.push('/(app)/contacts/add')}
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      {/* Header */}
+      <View className="flex-row items-center px-5 py-4">
+        <Pressable
+          className="w-10 h-10 rounded-full items-center justify-center -ml-2 mr-2"
+          onPress={() => router.back()}
         >
-          <Text style={styles.addButtonText}>+</Text>
+          <ChevronLeft color="#18181B" size={24} />
         </Pressable>
+        <Text className="flex-1 text-2xl font-bold text-foreground">Contactos</Text>
+        <Button
+          variant="default"
+          size="sm"
+          icon={<Plus color="#FFF" size={18} />}
+          title="Agregar"
+          onPress={() => router.push('/(app)/contacts/add')}
+        />
       </View>
 
+      {/* Search */}
+      {contacts.length > 0 && (
+        <View className="px-5 mb-4">
+          <View className="flex-row items-center bg-secondary border border-border rounded-xl px-3">
+            <Search color="#A1A1AA" size={20} />
+            <TextInput
+              className="flex-1 py-3 px-2 text-base text-foreground"
+              placeholder="Buscar contacto..."
+              placeholderTextColor="#A1A1AA"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+      )}
+
       <ScrollView
-        contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        className="flex-1"
+        contentContainerClassName="pb-6"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {contacts.length === 0 ? (
-          <Card variant="outlined" style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>👥</Text>
-            <Text style={styles.emptyTitle}>Sin contactos</Text>
-            <Text style={styles.emptyText}>
-              Agregá contactos para poder notificarles cuando llegues a destino
-            </Text>
-          </Card>
+          <EmptyState
+            icon={<Users color="#A1A1AA" size={48} />}
+            title="Sin contactos"
+            description="Agregá contactos para poder pedirles que te avisen cuando lleguen"
+            action={
+              <Button
+                title="Agregar contacto"
+                onPress={() => router.push('/(app)/contacts/add')}
+              />
+            }
+          />
         ) : (
           <>
-            {trustedContacts.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  ⭐ Círculo de confianza ({trustedContacts.length})
-                </Text>
-                <Text style={styles.sectionSubtitle}>
-                  Pueden enviarte solicitudes sin aprobación
-                </Text>
-                <View style={styles.contactsList}>
-                  {trustedContacts.map(contact => (
-                    <ContactItem
-                      key={contact.id}
-                      contact={contact}
-                      onToggleTrusted={(value) => handleToggleTrusted(contact.contact_id, contact.is_trusted)}
-                      onPress={() => handleRemove(
-                        contact.contact_id,
-                        contact.contact?.full_name || contact.contact?.username || 'contacto'
-                      )}
-                    />
-                  ))}
+            {/* Trusted Contacts */}
+            {filteredTrusted.length > 0 && (
+              <View className="mb-6">
+                <View className="flex-row items-center px-5 mb-2">
+                  <Star color="#F59E0B" size={16} fill="#F59E0B" />
+                  <Text className="text-sm font-semibold text-muted-foreground ml-2 uppercase tracking-wide">
+                    Círculo de confianza ({filteredTrusted.length})
+                  </Text>
                 </View>
+                <Text className="text-xs text-muted-foreground px-5 mb-3">
+                  Pueden enviarte solicitudes sin aprobación previa
+                </Text>
+                <Card className="mx-5">
+                  {filteredTrusted.map((contact, index) => (
+                    <View key={contact.id}>
+                      <ContactItem
+                        contact={contact}
+                        onToggleTrusted={() =>
+                          handleToggleTrusted(contact.contact_id, contact.is_trusted)
+                        }
+                        onRemove={() =>
+                          handleRemove(
+                            contact.contact_id,
+                            contact.contact?.full_name || contact.contact?.username || 'contacto'
+                          )
+                        }
+                      />
+                      {index < filteredTrusted.length - 1 && (
+                        <View className="h-px bg-border mx-4" />
+                      )}
+                    </View>
+                  ))}
+                </Card>
               </View>
             )}
 
-            {regularContacts.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  Contactos ({regularContacts.length})
-                </Text>
-                <View style={styles.contactsList}>
-                  {regularContacts.map(contact => (
-                    <ContactItem
-                      key={contact.id}
-                      contact={contact}
-                      onToggleTrusted={(value) => handleToggleTrusted(contact.contact_id, contact.is_trusted)}
-                      onPress={() => handleRemove(
-                        contact.contact_id,
-                        contact.contact?.full_name || contact.contact?.username || 'contacto'
-                      )}
-                    />
-                  ))}
+            {/* Regular Contacts */}
+            {filteredRegular.length > 0 && (
+              <View>
+                <View className="flex-row items-center px-5 mb-2">
+                  <Users color="#A1A1AA" size={16} />
+                  <Text className="text-sm font-semibold text-muted-foreground ml-2 uppercase tracking-wide">
+                    Contactos ({filteredRegular.length})
+                  </Text>
                 </View>
+                <Card className="mx-5">
+                  {filteredRegular.map((contact, index) => (
+                    <View key={contact.id}>
+                      <ContactItem
+                        contact={contact}
+                        onToggleTrusted={() =>
+                          handleToggleTrusted(contact.contact_id, contact.is_trusted)
+                        }
+                        onRemove={() =>
+                          handleRemove(
+                            contact.contact_id,
+                            contact.contact?.full_name || contact.contact?.username || 'contacto'
+                          )
+                        }
+                      />
+                      {index < filteredRegular.length - 1 && (
+                        <View className="h-px bg-border mx-4" />
+                      )}
+                    </View>
+                  ))}
+                </Card>
+              </View>
+            )}
+
+            {/* No results */}
+            {searchQuery && filteredTrusted.length === 0 && filteredRegular.length === 0 && (
+              <View className="items-center py-12">
+                <Text className="text-muted-foreground">No se encontraron contactos</Text>
               </View>
             )}
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
-  )
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.gray[50],
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.gray[900],
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addButtonText: {
-    fontSize: 24,
-    color: colors.white,
-    fontWeight: '600',
-  },
-  content: {
-    padding: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.gray[500],
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: colors.gray[400],
-    marginBottom: 12,
-  },
-  contactsList: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.gray[200],
-  },
-  emptyCard: {
-    alignItems: 'center',
-    paddingVertical: 48,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.gray[900],
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: colors.gray[500],
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    lineHeight: 20,
-  },
-})
+      {/* Custom Dialog */}
+      <Dialog {...dialogProps} />
+    </View>
+  );
+}

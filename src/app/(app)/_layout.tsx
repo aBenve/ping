@@ -1,79 +1,54 @@
-import { Tabs } from 'expo-router'
-import { Text, View, StyleSheet } from 'react-native'
-import { colors } from '@/constants'
-
-function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
-  return (
-    <View style={[styles.tabIcon, focused && styles.tabIconFocused]}>
-      <Text style={styles.tabIconText}>{icon}</Text>
-    </View>
-  )
-}
+import { Tabs } from 'expo-router';
+import { View } from 'react-native';
+import { Activity, Inbox, User } from 'lucide-react-native';
 
 export default function AppLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: colors.primary[600],
-        tabBarInactiveTintColor: colors.gray[400],
-        tabBarLabelStyle: styles.tabBarLabel,
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#E5E5E5',
+          paddingTop: 8,
+          paddingBottom: 8,
+          height: 70,
+        },
+        tabBarActiveTintColor: '#18181B',
+        tabBarInactiveTintColor: '#A1A1AA',
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 4,
+        },
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="activity"
         options={{
-          title: 'Inicio',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🏠" focused={focused} />,
+          title: 'Actividad',
+          tabBarIcon: ({ color, size }) => <Activity color={color} size={size} />,
         }}
       />
       <Tabs.Screen
-        name="requests"
+        name="inbox"
         options={{
-          title: 'Solicitudes',
-          tabBarIcon: ({ focused }) => <TabIcon icon="📨" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="contacts"
-        options={{
-          title: 'Contactos',
-          tabBarIcon: ({ focused }) => <TabIcon icon="👥" focused={focused} />,
+          title: 'Inbox',
+          tabBarIcon: ({ color, size }) => <Inbox color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ focused }) => <TabIcon icon="⚙️" focused={focused} />,
+          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
       />
+      {/* Hide old tabs */}
+      <Tabs.Screen name="home" options={{ href: null }} />
+      <Tabs.Screen name="requests" options={{ href: null }} />
+      <Tabs.Screen name="contacts" options={{ href: null }} />
     </Tabs>
-  )
+  );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.gray[200],
-    paddingTop: 8,
-    paddingBottom: 8,
-    height: 70,
-  },
-  tabBarLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  tabIcon: {
-    padding: 4,
-  },
-  tabIconFocused: {
-    transform: [{ scale: 1.1 }],
-  },
-  tabIconText: {
-    fontSize: 24,
-  },
-})

@@ -1,27 +1,41 @@
 import { useEffect, useRef, useState } from 'react'
-import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import { Platform } from 'react-native'
 import { router } from 'expo-router'
+import Constants from 'expo-constants'
 import { supabase } from '@/lib/supabase'
 import { useStore } from '@/stores/useStore'
 
-// Configurar handler de notificaciones
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-})
+// Verificar si estamos en Expo Go (no soporta push notifications desde SDK 53)
+const isExpoGo = Constants.appOwnership === 'expo'
+
+// Importar notifications solo si no estamos en Expo Go
+let Notifications: typeof import('expo-notifications') | null = null
+if (!isExpoGo) {
+  Notifications = require('expo-notifications')
+  // Configurar handler de notificaciones
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  })
+}
 
 export function usePushNotifications() {
   const { user } = useStore()
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null)
-  const notificationListener = useRef<Notifications.Subscription>()
-  const responseListener = useRef<Notifications.Subscription>()
+  const notificationListener = useRef<any>()
+  const responseListener = useRef<any>()
 
   useEffect(() => {
+    // Si estamos en Expo Go, no inicializar push notifications
+    if (isExpoGo || !Notifications) {
+      console.log('Push notifications disabled in Expo Go')
+      return
+    }
+
     registerForPushNotifications().then(token => {
       if (token) {
         setExpoPushToken(token)
@@ -55,10 +69,10 @@ export function usePushNotifications() {
     })
 
     return () => {
-      if (notificationListener.current) {
+      if (notificationListener.current && Notifications) {
         Notifications.removeNotificationSubscription(notificationListener.current)
       }
-      if (responseListener.current) {
+      if (responseListener.current && Notifications) {
         Notifications.removeNotificationSubscription(responseListener.current)
       }
     }
@@ -72,6 +86,11 @@ export function usePushNotifications() {
   }, [user, expoPushToken])
 
   async function registerForPushNotifications(): Promise<string | null> {
+    // No disponible en Expo Go
+    if (isExpoGo || !Notifications) {
+      return null
+    }
+
     if (!Device.isDevice) {
       console.log('Push notifications require a physical device')
       return null

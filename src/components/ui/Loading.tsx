@@ -1,33 +1,27 @@
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native'
-import { colors } from '@/constants'
+import { View, ActivityIndicator, Text } from 'react-native';
+import { cn } from '@/lib/utils';
 
 interface LoadingProps {
-  message?: string
-  fullScreen?: boolean
+  message?: string;
+  fullScreen?: boolean;
+  className?: string;
 }
 
-export function Loading({ message, fullScreen = false }: LoadingProps) {
+function Loading({ message, fullScreen = false, className }: LoadingProps) {
   return (
-    <View style={[styles.container, fullScreen && styles.fullScreen]}>
-      <ActivityIndicator size="large" color={colors.primary[600]} />
-      {message && <Text style={styles.message}>{message}</Text>}
+    <View
+      className={cn(
+        'items-center justify-center p-5',
+        fullScreen && 'flex-1 bg-background',
+        className
+      )}
+    >
+      <ActivityIndicator size="large" color="#18181B" />
+      {message && (
+        <Text className="mt-3 text-sm text-muted-foreground">{message}</Text>
+      )}
     </View>
-  )
+  );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  fullScreen: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  message: {
-    marginTop: 12,
-    fontSize: 14,
-    color: colors.gray[600],
-  },
-})
+export { Loading };

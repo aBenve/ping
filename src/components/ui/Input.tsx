@@ -1,132 +1,76 @@
-import { useState } from 'react'
-import { 
-  View, 
-  TextInput, 
-  Text, 
-  StyleSheet, 
-  TextInputProps,
-  Pressable,
-  ViewStyle,
-} from 'react-native'
-import { colors } from '@/constants'
+import { useState } from 'react';
+import { View, TextInput, Text, TextInputProps, Pressable } from 'react-native';
+import { cn } from '@/lib/utils';
 
 interface InputProps extends TextInputProps {
-  label?: string
-  error?: string
-  hint?: string
-  leftIcon?: React.ReactNode
-  rightIcon?: React.ReactNode
-  onRightIconPress?: () => void
-  containerStyle?: ViewStyle
+  label?: string;
+  error?: string;
+  hint?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  onRightIconPress?: () => void;
+  className?: string;
+  containerClassName?: string;
 }
 
-export function Input({
+function Input({
   label,
   error,
   hint,
   leftIcon,
   rightIcon,
   onRightIconPress,
-  containerStyle,
+  className,
+  containerClassName,
   ...props
 }: InputProps) {
-  const [isFocused, setIsFocused] = useState(false)
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      
+    <View className={cn('mb-4', containerClassName)}>
+      {label && (
+        <Text className="text-sm font-medium text-foreground mb-1.5">{label}</Text>
+      )}
+
       <View
-        style={[
-          styles.inputContainer,
-          isFocused && styles.inputFocused,
-          error && styles.inputError,
-        ]}
+        className={cn(
+          'flex-row items-center bg-secondary border border-border rounded-xl min-h-[48px]',
+          isFocused && 'border-foreground bg-background',
+          error && 'border-destructive'
+        )}
       >
-        {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
-        
+        {leftIcon && <View className="pl-3">{leftIcon}</View>}
+
         <TextInput
-          style={[
-            styles.input,
-            leftIcon && styles.inputWithLeftIcon,
-            rightIcon && styles.inputWithRightIcon,
-          ]}
-          placeholderTextColor={colors.gray[400]}
+          className={cn(
+            'flex-1 text-base text-foreground px-4 py-3',
+            leftIcon && 'pl-2',
+            rightIcon && 'pr-2',
+            className
+          )}
+          placeholderTextColor="#9CA3AF"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...props}
         />
-        
+
         {rightIcon && (
-          <Pressable 
-            onPress={onRightIconPress} 
-            style={styles.rightIcon}
+          <Pressable
+            onPress={onRightIconPress}
+            className="pr-3"
             disabled={!onRightIconPress}
           >
             {rightIcon}
           </Pressable>
         )}
       </View>
-      
-      {error && <Text style={styles.error}>{error}</Text>}
-      {hint && !error && <Text style={styles.hint}>{hint}</Text>}
+
+      {error && <Text className="text-xs text-destructive mt-1">{error}</Text>}
+      {hint && !error && (
+        <Text className="text-xs text-muted-foreground mt-1">{hint}</Text>
+      )}
     </View>
-  )
+  );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.gray[700],
-    marginBottom: 6,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.gray[50],
-    borderWidth: 1.5,
-    borderColor: colors.gray[200],
-    borderRadius: 12,
-    minHeight: 48,
-  },
-  inputFocused: {
-    borderColor: colors.primary[500],
-    backgroundColor: colors.white,
-  },
-  inputError: {
-    borderColor: colors.error.main,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.gray[900],
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  inputWithLeftIcon: {
-    paddingLeft: 8,
-  },
-  inputWithRightIcon: {
-    paddingRight: 8,
-  },
-  leftIcon: {
-    paddingLeft: 12,
-  },
-  rightIcon: {
-    paddingRight: 12,
-  },
-  error: {
-    fontSize: 12,
-    color: colors.error.main,
-    marginTop: 4,
-  },
-  hint: {
-    fontSize: 12,
-    color: colors.gray[500],
-    marginTop: 4,
-  },
-})
+export { Input };

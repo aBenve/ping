@@ -1,139 +1,109 @@
-import { Pressable, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native'
-import { colors } from '@/constants'
+import { forwardRef } from 'react';
+import { Pressable, Text, ActivityIndicator, View } from 'react-native';
+import { cn } from '@/lib/utils';
 
 interface ButtonProps {
-  title: string
-  onPress: () => void
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
-  size?: 'sm' | 'md' | 'lg'
-  disabled?: boolean
-  loading?: boolean
-  style?: ViewStyle
-  textStyle?: TextStyle
-  testID?: string
+  children?: React.ReactNode;
+  title?: string;
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
+  disabled?: boolean;
+  loading?: boolean;
+  onPress?: () => void;
+  className?: string;
+  icon?: React.ReactNode;
+  testID?: string;
 }
 
-export function Button({
-  title,
-  onPress,
-  variant = 'primary',
-  size = 'md',
-  disabled = false,
-  loading = false,
-  style,
-  textStyle,
-  testID,
-}: ButtonProps) {
-  const isDisabled = disabled || loading
+const Button = forwardRef<View, ButtonProps>(
+  (
+    {
+      children,
+      title,
+      variant = 'default',
+      size = 'md',
+      disabled = false,
+      loading = false,
+      onPress,
+      className,
+      icon,
+      testID,
+    },
+    ref
+  ) => {
+    const baseStyles =
+      'flex-row items-center justify-center rounded-xl active:opacity-80';
 
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={isDisabled}
-      testID={testID}
-      accessibilityLabel={title}
-      style={({ pressed }) => [
-        styles.base,
-        styles[variant],
-        styles[`size_${size}`],
-        pressed && styles.pressed,
-        isDisabled && styles.disabled,
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator 
-          color={variant === 'primary' ? colors.white : colors.primary[600]} 
-          size="small" 
-        />
-      ) : (
-        <Text style={[styles.text, styles[`text_${variant}`], styles[`text_${size}`], textStyle]}>
-          {title}
-        </Text>
-      )}
-    </Pressable>
-  )
-}
+    const variants = {
+      default: 'bg-foreground',
+      secondary: 'bg-secondary',
+      outline: 'border border-border bg-transparent',
+      ghost: 'bg-transparent',
+      destructive: 'bg-destructive',
+    };
 
-const styles = StyleSheet.create({
-  base: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    flexDirection: 'row',
-  },
-  
-  // Variants
-  primary: {
-    backgroundColor: colors.primary[600],
-  },
-  secondary: {
-    backgroundColor: colors.gray[100],
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: colors.primary[600],
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  danger: {
-    backgroundColor: colors.error.main,
-  },
-  
-  // Sizes
-  size_sm: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    minHeight: 36,
-  },
-  size_md: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    minHeight: 48,
-  },
-  size_lg: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    minHeight: 56,
-  },
-  
-  // States
-  pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  
-  // Text
-  text: {
-    fontWeight: '600',
-  },
-  text_primary: {
-    color: colors.white,
-  },
-  text_secondary: {
-    color: colors.gray[900],
-  },
-  text_outline: {
-    color: colors.primary[600],
-  },
-  text_ghost: {
-    color: colors.primary[600],
-  },
-  text_danger: {
-    color: colors.white,
-  },
-  text_sm: {
-    fontSize: 14,
-  },
-  text_md: {
-    fontSize: 16,
-  },
-  text_lg: {
-    fontSize: 18,
-  },
-})
+    const sizes = {
+      sm: 'h-9 px-4',
+      md: 'h-12 px-6',
+      lg: 'h-14 px-8',
+      icon: 'h-11 w-11',
+    };
+
+    const textVariants = {
+      default: 'text-background',
+      secondary: 'text-foreground',
+      outline: 'text-foreground',
+      ghost: 'text-foreground',
+      destructive: 'text-white',
+    };
+
+    const textSizes = {
+      sm: 'text-sm',
+      md: 'text-base',
+      lg: 'text-lg',
+      icon: 'text-base',
+    };
+
+    return (
+      <Pressable
+        ref={ref}
+        onPress={onPress}
+        disabled={disabled || loading}
+        testID={testID}
+        className={cn(
+          baseStyles,
+          variants[variant],
+          sizes[size],
+          disabled && 'opacity-50',
+          className
+        )}
+      >
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={variant === 'default' || variant === 'destructive' ? '#fff' : '#000'}
+          />
+        ) : (
+          <>
+            {icon && <View className={title || children ? 'mr-2' : ''}>{icon}</View>}
+            {(title || children) && (
+              <Text
+                className={cn(
+                  'font-semibold',
+                  textVariants[variant],
+                  textSizes[size]
+                )}
+              >
+                {title || children}
+              </Text>
+            )}
+          </>
+        )}
+      </Pressable>
+    );
+  }
+);
+
+Button.displayName = 'Button';
+
+export { Button };
