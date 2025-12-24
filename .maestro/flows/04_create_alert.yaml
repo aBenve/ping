@@ -1,0 +1,138 @@
+# Test: Crear alerta completa (wizard 3 pasos)
+# Prerequisito: Usuario logueado, al menos 1 contacto agregado
+
+appId: host.exp.Exponent
+---
+
+- launchApp:
+    clearState: false
+
+# Si estamos en Expo Go, tocar en Ping para abrir la app
+- tapOn:
+    text: "Ping"
+    optional: true
+
+# Esperar que cargue (puede ser Login o Home)
+- extendedWaitUntil:
+    visible:
+      text: ".*[Bb]uen[oa]s.*|Iniciar sesión|Crear alerta"
+    timeout: 30000
+
+# Si estamos en Login, hacer login
+- tapOn:
+    text: "tu@email.com"
+    optional: true
+- inputText:
+    text: "test@example.com"
+    optional: true
+- tapOn:
+    text: "••••••••"
+    optional: true
+- inputText:
+    text: "password123"
+    optional: true
+- hideKeyboard:
+    optional: true
+- tapOn:
+    text: "Iniciar sesión"
+    optional: true
+
+# Esperar Home
+- extendedWaitUntil:
+    visible:
+      text: ".*[Bb]uen[oa]s.*|Crear alerta"
+    timeout: 20000
+
+# Ir a Home tab (por si no estamos ahí)
+- tapOn:
+    text: "Inicio"
+    optional: true
+
+# Buscar botón crear alerta
+- tapOn:
+    text: ".*[Cc]rear.*alerta.*"
+    optional: true
+- tapOn:
+    text: ".*[Nn]ueva.*"
+    optional: true
+
+# === PASO 1: Destino ===
+- assertVisible:
+    text: ".*[Dd]estino.*|.*dónde vas.*"
+
+# Usar ubicación actual
+- tapOn:
+    text: ".*ubicación actual.*"
+
+# Puede pedir permisos - aceptar si aparece
+- tapOn:
+    text: "Allow While Using App"
+    optional: true
+- tapOn:
+    text: "Permitir.*"
+    optional: true
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    text: "While Using"
+    optional: true
+
+# Esperar que obtenga ubicación (el nombre cambia o aparece coordenadas)
+- extendedWaitUntil:
+    visible:
+      text: ".*ubicación.*|San Francisco|37\\."
+    timeout: 15000
+
+# Esperar que aparezcan las coordenadas (ubicación obtenida)
+- extendedWaitUntil:
+    visible:
+      text: "Mi ubicación|37\\.|Ubicación seleccionada"
+    timeout: 15000
+
+# Tap en el botón Siguiente (retry si no funciona)
+- repeat:
+    times: 3
+    commands:
+      - tapOn:
+          text: "Siguiente.*"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            text: ".*quién.*|Juan|contacto"
+          timeout: 3000
+          optional: true
+
+# === PASO 2: Contactos ===
+# Esperar que cargue el paso 2
+- extendedWaitUntil:
+    visible:
+      text: ".*quién.*|Juan"
+    timeout: 10000
+
+# Seleccionar contacto juan
+- tapOn: "Juan"
+
+# Continuar al paso 3
+- tapOn:
+    id: "btn-next-step2"
+
+# === PASO 3: Fallback ===
+- extendedWaitUntil:
+    visible: "30 minutos"
+    timeout: 10000
+
+# Seleccionar 30 minutos
+- tapOn: "30 minutos"
+
+# Activar alerta
+- tapOn:
+    id: "btn-activate"
+
+# Esperar volver a Home con alerta activa
+- extendedWaitUntil:
+    visible:
+      text: ".*llegué.*|Cancelar|Test User"
+    timeout: 20000
+
+- takeScreenshot: "04_alert_created"

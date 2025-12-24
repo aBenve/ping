@@ -1,0 +1,7 @@
+appId: host.exp.Exponent
+---
+- tapOn:
+    point: "12%,97%"
+- extendedWaitUntil:
+    visible: "Sin alertas"
+    timeout: 5000

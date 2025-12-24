@@ -1,0 +1,49 @@
+# Test: Login de usuario existente
+# Prerequisito: Usuario test@example.com existe
+
+appId: host.exp.Exponent
+---
+
+# Esperar pantalla de login
+- extendedWaitUntil:
+    visible: "Iniciar sesión"
+    timeout: 10000
+
+# Verificar elementos de la pantalla
+- assertVisible: "Ping"
+- assertVisible: "Email"
+- assertVisible: "Contraseña"
+
+# Tocar en campo email
+- tapOn: "tu@email.com"
+
+# Ingresar email
+- inputText: "test@example.com"
+
+# Tocar en campo contraseña
+- tapOn:
+    text: ".*Contraseña.*"
+- tapOn:
+    text: "••••••••"
+    optional: true
+
+# Ingresar contraseña
+- inputText: "password123"
+
+# Ocultar teclado
+- hideKeyboard
+
+# Tocar botón iniciar sesión
+- tapOn: "Iniciar sesión"
+
+# Esperar Home - buscar saludo (Buenos/Buenas días/tardes/noches)
+- extendedWaitUntil:
+    visible:
+      text: ".*[Bb]uen[oa]s.*"
+    timeout: 15000
+
+# Verificar elementos del Home
+- assertVisible: "Test User"
+- assertVisible: "Crear alerta"
+
+- takeScreenshot: "02_login_success"

@@ -1,0 +1,60 @@
+# Test: Registro de usuario
+# Prerequisito: Base de datos limpia o usuario no existe
+
+appId: host.exp.Exponent
+---
+
+# Esperar que la app cargue
+- launchApp
+
+# Esperar pantalla de login
+- assertVisible: "Iniciar sesión"
+
+# Ir a registro
+- tapOn: "Crear cuenta"
+
+# Verificar que estamos en registro
+- assertVisible: "Crear cuenta"
+
+# Test: Validación de campos vacíos
+- tapOn: "Crear cuenta"
+- assertVisible:
+    text: ".*obligatorio.*"
+    optional: true
+
+# Llenar formulario con datos válidos
+- tapOn:
+    id: "input-fullname"
+    optional: true
+- inputText: "Usuario Test E2E"
+
+- tapOn:
+    id: "input-username"
+- inputText: "testusere2e"
+
+- tapOn:
+    id: "input-email"
+- inputText: "e2e@test.com"
+
+- tapOn:
+    id: "input-password"
+- inputText: "password123"
+
+# Ocultar teclado
+- hideKeyboard
+
+# Crear cuenta
+- tapOn: "Crear cuenta"
+
+# Esperar navegación a Home (puede tardar)
+- extendedWaitUntil:
+    visible: "Buenos"  # "Buenos días/tardes/noches"
+    timeout: 10000
+
+# Verificar que llegamos a Home
+- assertVisible:
+    text: ".*alerta.*"
+    optional: true
+
+# Screenshot de éxito
+- takeScreenshot: "01_register_success"

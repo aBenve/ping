@@ -1,0 +1,23 @@
+# Login Usuario B (contacto1) en iPhone SE
+appId: host.exp.Exponent
+---
+
+- assertVisible: "Iniciar sesión"
+
+# Email
+- tapOn: "tu@email.com"
+- inputText: "contacto@test.com"
+
+# Password
+- tapOn: "••••••••"
+- inputText: "123456"
+
+- hideKeyboard
+
+# Login
+- tapOn: "Iniciar sesión"
+
+# Esperar Home
+- extendedWaitUntil:
+    visible: "Mi Contacto"
+    timeout: 15000

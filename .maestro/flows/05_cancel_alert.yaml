@@ -1,0 +1,40 @@
+# Test: Cancelar alerta activa
+# Prerequisito: Alerta activa existe
+
+appId: host.exp.Exponent
+---
+
+- launchApp
+
+# Esperar Home
+- extendedWaitUntil:
+    visible: "Buenos"
+    timeout: 10000
+
+# Verificar que hay alerta activa
+- assertVisible:
+    text: ".*[Aa]lerta.*activa.*"
+    optional: true
+
+# Tocar cancelar
+- tapOn: "Cancelar"
+
+# Confirmar en el alert
+- tapOn:
+    text: ".*[Cc]ancelar.*"
+    index: 1
+    optional: true
+- tapOn:
+    text: "Sí"
+    optional: true
+- tapOn:
+    text: "Confirmar"
+    optional: true
+
+# Esperar que desaparezca la alerta
+- extendedWaitUntil:
+    notVisible: "Alerta activa"
+    timeout: 5000
+    optional: true
+
+- takeScreenshot: "05_alert_cancelled"

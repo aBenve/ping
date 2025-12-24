@@ -1,0 +1,41 @@
+# Conectar a Expo desde Expo Go
+# Este flow abre la app de Ping en el simulador
+
+appId: host.exp.Exponent
+---
+- launchApp:
+    clearState: true
+
+# Esperar que cargue Expo Go
+- extendedWaitUntil:
+    visible: "Enter URL manually"
+    timeout: 10000
+
+# Expandir el campo de URL
+- tapOn: "Enter URL manually"
+
+# Esperar que aparezca el campo
+- extendedWaitUntil:
+    visible: "Connect"
+    timeout: 5000
+
+# Tocar en el campo de texto (placeholder exp://)
+- tapOn:
+    text: ".*exp.*"
+    optional: true
+
+# Escribir la URL (se añade después de exp://)
+- inputText: "192.168.1.97:8081"
+
+# Ocultar teclado
+- hideKeyboard
+
+# Tocar Connect
+- tapOn: "Connect"
+
+# Esperar que cargue la app de Ping (puede tardar 30-60 segundos)
+- extendedWaitUntil:
+    visible: "Iniciar"
+    timeout: 60000
+
+- takeScreenshot: "00_app_connected"

@@ -1,0 +1,19 @@
+# Maestro Configuration for Ping App
+# https://maestro.mobile.dev/
+
+appId: host.exp.Exponent  # Expo Go app ID
+
+# Para dev build usar el bundle ID real:
+# appId: com.ping.app
+
+# Configuración de ejecución
+executionOrder:
+  continueOnFailure: false
+
+# Variables de entorno para tests
+env:
+  SUPABASE_URL: "http://192.168.1.97:54321"
+  TEST_USER_EMAIL: "test@example.com"
+  TEST_USER_PASSWORD: "password123"
+  TEST_USER2_EMAIL: "contacto@test.com"
+  TEST_USER2_PASSWORD: "123456"

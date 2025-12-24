@@ -1,0 +1,64 @@
+# Test: Marcar llegada manual ("Ya llegué")
+# Prerequisito: Alerta activa existe en DB
+
+appId: host.exp.Exponent
+---
+
+- launchApp:
+    clearState: false
+
+# Si estamos en Expo Go, tocar en Ping
+- tapOn:
+    text: "Ping"
+    optional: true
+
+# Esperar que cargue (Login o Home)
+- extendedWaitUntil:
+    visible:
+      text: ".*[Bb]uen[oa]s.*|Iniciar sesión|Test User"
+    timeout: 30000
+
+# Si estamos en Login, hacer login
+- tapOn:
+    text: "tu@email.com"
+    optional: true
+- inputText:
+    text: "test@example.com"
+    optional: true
+- tapOn:
+    text: "••••••••"
+    optional: true
+- inputText:
+    text: "password123"
+    optional: true
+- hideKeyboard:
+    optional: true
+- tapOn:
+    text: "Iniciar sesión"
+    optional: true
+
+# Esperar Home con alerta activa
+- extendedWaitUntil:
+    visible:
+      text: ".*[Bb]uen[oa]s.*|Test User|San Francisco"
+    timeout: 20000
+
+# Verificar que hay alerta activa visible
+- extendedWaitUntil:
+    visible:
+      text: "San Francisco|Ya llegué|Alerta activa"
+    timeout: 10000
+
+- takeScreenshot: "06_before_arrived"
+
+# Tocar "Ya llegué"
+- tapOn:
+    text: ".*llegué.*"
+
+# Esperar que procese
+- extendedWaitUntil:
+    visible:
+      text: "Sin alertas|Crear alerta"
+    timeout: 15000
+
+- takeScreenshot: "06_after_arrived"

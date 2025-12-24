@@ -1,0 +1,51 @@
+# Test: Agregar contacto
+# Prerequisito: Usuario logueado, usuario "contacto1" existe en DB
+
+appId: host.exp.Exponent
+---
+
+# Verificar que estamos en Home
+- assertVisible: "Sin alertas activas"
+
+# Ir a tab Contactos (tercer tab)
+- tapOn:
+    point: "67%,97%"
+
+# Esperar pantalla de contactos
+- extendedWaitUntil:
+    visible: "Sin contactos"
+    timeout: 10000
+
+- takeScreenshot: "03a_contacts_empty"
+
+# Tocar botón + (arriba derecha)
+- tapOn:
+    point: "92%,18%"
+
+# Verificar pantalla agregar
+- extendedWaitUntil:
+    visible: "Agregar contacto"
+    timeout: 5000
+
+- takeScreenshot: "03b_add_contact_screen"
+
+# Tocar en el campo de username
+- tapOn:
+    text: "juanperez"
+    optional: true
+
+# Ingresar username del contacto
+- inputText: "contacto1"
+
+# Ocultar teclado
+- hideKeyboard
+
+# Tocar botón agregar
+- tapOn: "Agregar contacto"
+
+# Esperar volver a lista con contacto agregado
+- extendedWaitUntil:
+    visible: "Mi Contacto"
+    timeout: 10000
+
+- takeScreenshot: "03c_contact_added"

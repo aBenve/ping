@@ -1,0 +1,42 @@
+# Test: Cerrar sesión
+# Prerequisito: Usuario logueado
+
+appId: host.exp.Exponent
+---
+
+- launchApp
+
+# Esperar Home
+- extendedWaitUntil:
+    visible: "Buenos"
+    timeout: 10000
+
+# Ir a tab Perfil
+- tapOn: "Perfil"
+
+# Verificar pantalla perfil
+- assertVisible: "Mi perfil"
+
+# Scroll hasta logout si es necesario
+- scroll:
+    direction: DOWN
+    optional: true
+
+# Tocar cerrar sesión
+- tapOn:
+    text: ".*[Cc]errar sesión.*"
+
+# Confirmar si hay alert
+- tapOn:
+    text: "Sí"
+    optional: true
+- tapOn:
+    text: "Cerrar"
+    optional: true
+
+# Verificar que volvemos a Login
+- extendedWaitUntil:
+    visible: "Iniciar sesión"
+    timeout: 5000
+
+- takeScreenshot: "07_logged_out"

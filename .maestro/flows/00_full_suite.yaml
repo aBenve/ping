@@ -1,0 +1,16 @@
+# Suite completa de tests E2E
+# Ejecuta todos los flujos en orden
+
+appId: host.exp.Exponent
+---
+
+# Este archivo orquesta todos los tests
+# Ejecutar con: maestro test .maestro/flows/00_full_suite.yaml
+
+- runFlow: 02_auth_login.yaml
+- runFlow: 03_contacts_add.yaml
+- runFlow: 04_create_alert.yaml
+- runFlow: 05_cancel_alert.yaml
+- runFlow: 04_create_alert.yaml  # Crear de nuevo para probar "Ya llegué"
+- runFlow: 06_mark_arrived.yaml
+- runFlow: 07_logout.yaml
