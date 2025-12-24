@@ -40,10 +40,9 @@
         "FOREGROUND_SERVICE",
         "FOREGROUND_SERVICE_LOCATION",
         "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ]
+        "VIBRATE"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "bundler": "metro",
@@ -55,7 +54,9 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Ping necesita acceso a tu ubicación para avisarle a tus contactos cuando llegues."
+          "locationAlwaysAndWhenInUsePermission": "Ping necesita acceso a tu ubicación para avisarle a tus contactos cuando llegues.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       [
@@ -63,6 +64,12 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#4F46E5"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Ping necesita acceso a la cámara para escanear códigos QR."
         }
       ],
       "expo-asset",
@@ -79,6 +86,9 @@
         "projectId": "dfdc903b-db70-4385-8d68-d3febecf22e1"
       }
     },
-    "owner": "abenve"
+    "owner": "abenve",
+    "updates": {
+      "url": "https://u.expo.dev/dfdc903b-db70-4385-8d68-d3febecf22e1"
+    }
   }
 }
