@@ -9,3 +9,7 @@ expo-env.d.ts
 node_modules/
 
 .env*
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
